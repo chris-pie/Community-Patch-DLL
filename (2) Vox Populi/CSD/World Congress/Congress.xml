@@ -75,7 +75,7 @@
 			<Text>Sphere of Influence</Text>
 		</Row>
 		<Row Tag="TXT_KEY_RESOLUTION_SOI_HELP">
-			<Text>Demand a Sphere of Influence over a City-State. If successful, the proposing player becomes the permanent Ally of the City-State (unless this Proposal is repealed). The proposer must be the current ally of the City-State. [NEWLINE][NEWLINE]Available once any Civilization discovers Steam Power.</Text>
+			<Text>Demand a Sphere of Influence over a City-State. If successful, the proposing player becomes the permanent Ally of the City-State (unless this Proposal is repealed). The proposer must be the current ally of the City-State. If the City-State is captured, the conquering player will have the option to release it and remove Sphere of Influence from it. [NEWLINE][NEWLINE]Available once any Civilization discovers Steam Power.</Text>
 		</Row>
 		<Row Tag="TXT_KEY_LEAGUE_OVERVIEW_EFFECT_SUMMARY_SOI">
 			<Text>Spheres of Influence: {1_CivsList}</Text>
