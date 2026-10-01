@@ -13,6 +13,8 @@
 #include "CvDealClasses.h"
 #include "CvDiplomacyAIEnums.h"
 
+#define WAR_BRIBE_TURNS_VALID 10
+
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  CLASS:      CvDealAI
@@ -131,7 +133,7 @@ public:
 	bool IsMakeOfferForTech(PlayerTypes eOtherPlayer, CvDeal* pDeal);
 	bool IsMakeOfferForVote(PlayerTypes eOtherPlayer, CvDeal* pDeal);
 	bool IsMakeOfferForMaps(PlayerTypes eOtherPlayer, CvDeal* pDeal);
-	bool IsMakeOfferForThirdPartyWar(PlayerTypes eOtherPlayer, CvDeal* pDeal);
+	bool IsMakeOfferForThirdPartyWar(PlayerTypes eOtherPlayer, CvDeal* pDeal, TeamTypes& eTeam);
 	bool IsMakeOfferForThirdPartyPeace(PlayerTypes eOtherPlayer, CvDeal* pDeal);
 	bool IsMakeOfferForStrategicResource(PlayerTypes eOtherPlayer, CvDeal* pDeal);
 	bool IsMakeOfferForEmbassyExchange(PlayerTypes eOtherPlayer, CvDeal* pDeal);

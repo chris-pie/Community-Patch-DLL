@@ -930,6 +930,9 @@ public:
 	void SetTheySupportedOurHostingTurn(PlayerTypes ePlayer, int iTurn);
 	bool TheySupportedOurHosting(PlayerTypes ePlayer) const;
 
+	int GetProposedWarBribeToTurn(PlayerTypes ePlayer, TeamTypes eTeam) const;
+	void SetProposedWarBribeToTurn(PlayerTypes ePlayer, TeamTypes eTeam, int iTurn);
+
 	// ------------------------------------
 	// Player-Specific Memory Values
 	// ------------------------------------
@@ -2133,6 +2136,7 @@ private:
 	int m_aiTheySanctionedUsTurn[MAX_MAJOR_CIVS];
 	int m_aiTheyUnsanctionedUsTurn[MAX_MAJOR_CIVS];
 	int m_aiTheySupportedOurHostingTurn[MAX_MAJOR_CIVS];
+	int m_aiProposedWarBribeToTurn[MAX_MAJOR_CIVS][MAX_TEAMS];
 
 	// Player-Specific Memory
 	char m_aeProtectedMinorBullied[MAX_MAJOR_CIVS];

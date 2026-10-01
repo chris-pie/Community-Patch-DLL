@@ -332,6 +332,10 @@ void CvDiplomacyAI::Init(CvPlayer* pPlayer)
 			m_aiTheySanctionedUsTurn[iI] = -1;
 			m_aiTheyUnsanctionedUsTurn[iI] = -1;
 			m_aiTheySupportedOurHostingTurn[iI] = -1;
+			for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
+			{
+				m_aiProposedWarBribeToTurn[iI][iTeam] = -1;
+			}
 
 			// Player-Specific Memory Values
 			m_aeProtectedMinorBullied[iI] = NO_PLAYER;
@@ -669,6 +673,7 @@ void CvDiplomacyAI::Serialize(DiplomacyAI& diplomacyAI, Visitor& visitor)
 	visitor(diplomacyAI.m_aiTheySanctionedUsTurn);
 	visitor(diplomacyAI.m_aiTheyUnsanctionedUsTurn);
 	visitor(diplomacyAI.m_aiTheySupportedOurHostingTurn);
+	visitor(diplomacyAI.m_aiProposedWarBribeToTurn);
 
 	// Player-Specific Memory
 	visitor(diplomacyAI.m_aeProtectedMinorBullied);
@@ -8712,6 +8717,24 @@ bool CvDiplomacyAI::TheySupportedOurHosting(PlayerTypes ePlayer) const
 {
 	return GetTheySupportedOurHostingTurn(ePlayer) > -1;
 }
+
+/// How many turns has it been since we proposed a war bribe against a specific team to them?
+int CvDiplomacyAI::GetProposedWarBribeToTurn(PlayerTypes ePlayer, TeamTypes eTeam) const
+{
+	PRECONDITION(ePlayer >= 0 && ePlayer < MAX_MAJOR_CIVS, "Player index out of bounds");
+	PRECONDITION(eTeam >= 0 && eTeam < MAX_TEAMS, "Team index out of bounds");
+	return m_aiProposedWarBribeToTurn[ePlayer][eTeam];
+}
+
+void CvDiplomacyAI::SetProposedWarBribeToTurn(PlayerTypes ePlayer, TeamTypes eTeam, int iTurn)
+{
+	PRECONDITION(ePlayer >= 0 && ePlayer < MAX_MAJOR_CIVS, "Player index out of bounds");
+	PRECONDITION(eTeam >= 0 && eTeam < MAX_TEAMS, "Team index out of bounds");
+	ASSERT(iTurn >= -1, "Setting ProposedWarBribeToTurn to an invalid value");
+	ASSERT(NotMe(ePlayer), "Setting ProposedWarBribeToTurn for self");
+	m_aiProposedWarBribeToTurn[ePlayer][eTeam] = iTurn;
+}
+
 
 //	-----------------------------------------------------------------------------------------------
 
@@ -30635,8 +30658,12 @@ void CvDiplomacyAI::DoThirdPartyWarTrade(PlayerTypes ePlayer, DiploStatementType
 
 	if (GetNumTurnsSinceStatementSent(ePlayer, DIPLO_STATEMENT_THIRDPARTY_WAR_REQUEST) >= 40)
 	{
-		if (GetPlayer()->GetDealAI()->IsMakeOfferForThirdPartyWar(ePlayer, /*pDeal can be modified in this function*/ pDeal))
+		TeamTypes eTeam = NO_TEAM;
+		if (GetPlayer()->GetDealAI()->IsMakeOfferForThirdPartyWar(ePlayer, /*pDeal can be modified in this function*/ pDeal, eTeam))
+		{
 			eStatement = DIPLO_STATEMENT_THIRDPARTY_WAR_REQUEST;
+			GetPlayer()->GetDiplomacyAI()->SetProposedWarBribeToTurn(ePlayer, eTeam, GC.getGame().getGameTurn());
+		}
 		else
 			pDeal->ClearItems();
 	}

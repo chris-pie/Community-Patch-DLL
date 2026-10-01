@@ -2924,6 +2924,12 @@ int CvDealAI::GetThirdPartyWarValue(bool bFromMe, PlayerTypes eOtherPlayer, Team
 	if (pOurDiploAI->IsUntrustworthy(eOtherPlayer))
 		return INT_MAX;
 
+	//Only allow if made offer for this recently (or offer coming from us right now)
+	if (!bFromMe) {
+		int iWarBribeTurn = GetPlayer()->GetDiplomacyAI()->GetProposedWarBribeToTurn(eOtherPlayer, eWithTeam);
+		if (iWarBribeTurn == -1 || iWarBribeTurn <= GC.getGame().getGameTurn() - WAR_BRIBE_TURNS_VALID)
+			return INT_MAX;
+	}
 	// Friendly towards Minor Civ?
 	CvDiplomacyAI* pDiploAI = kPlayerDeclaringWar.GetDiplomacyAI();
 	CivApproachTypes eMajorApproachTowardsWarPlayer = pDiploAI->GetCivApproach(eWithPlayer);
@@ -5795,39 +5801,44 @@ bool CvDealAI::IsMakeOfferForMaps(PlayerTypes eOtherPlayer, CvDeal* pDeal)
 }
 
 /// A good time to make an offer to start a war?
-bool CvDealAI::IsMakeOfferForThirdPartyWar(PlayerTypes eOtherPlayer, CvDeal* pDeal)
+bool CvDealAI::IsMakeOfferForThirdPartyWar(PlayerTypes eOtherPlayer, CvDeal* pDeal, TeamTypes& eTeam)
 {
 	// Asking a vassal or AI teammate of human? Abort!
 	if (GET_TEAM(GET_PLAYER(eOtherPlayer).getTeam()).IsVassalOfSomeone() || GET_PLAYER(eOtherPlayer).IsAITeammateOfHuman())
 		return false;
 
+	eTeam = NO_TEAM;
 	int iBestValue = 0;
-	TeamTypes eBestTeam = NO_TEAM;
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		PlayerTypes eAgainstPlayer = (PlayerTypes)iI;
 
 		if (!pDeal->IsPossibleToTradeItem(eOtherPlayer, GetPlayer()->GetID(), TRADE_ITEM_THIRD_PARTY_WAR, GET_PLAYER(eAgainstPlayer).getTeam()))
 			continue;
-
+		//Since we're considering making an offer, we need to assume it's going to be made to calculate the value
+		int iTurns = GetPlayer()->GetDiplomacyAI()->GetProposedWarBribeToTurn(eOtherPlayer, eTeam);
+		GetPlayer()->GetDiplomacyAI()->SetProposedWarBribeToTurn(eOtherPlayer, eTeam, GC.getGame().getGameTurn());
 		int iWarValue = GetThirdPartyWarValue(false, eOtherPlayer, GET_PLAYER(eAgainstPlayer).getTeam());
+		GetPlayer()->GetDiplomacyAI()->SetProposedWarBribeToTurn(eOtherPlayer, eTeam, iTurns);
 		if (iWarValue != INT_MAX && iWarValue > iBestValue)
 		{
-			eBestTeam = GET_PLAYER(eAgainstPlayer).getTeam();
+			eTeam = GET_PLAYER(eAgainstPlayer).getTeam();
 			iBestValue = iWarValue;
 		}
 	}
 
-	if (eBestTeam == NO_TEAM)
+	if (eTeam == NO_TEAM)
 		return false;
 
-	pDeal->AddThirdPartyWar(eOtherPlayer, eBestTeam);
+	int iTurns = GetPlayer()->GetDiplomacyAI()->GetProposedWarBribeToTurn(eOtherPlayer, eTeam);
+	GetPlayer()->GetDiplomacyAI()->SetProposedWarBribeToTurn(eOtherPlayer, eTeam, GC.getGame().getGameTurn());
+	pDeal->AddThirdPartyWar(eOtherPlayer, eTeam);
 
 	// AI evaluation
 	bool bUselessReferenceVariable = false;
 	bool bCantMatchOffer = false;
+	GetPlayer()->GetDiplomacyAI()->SetProposedWarBribeToTurn(eOtherPlayer, eTeam, iTurns);
 	bool bDealAcceptable = DoEqualizeDeal(pDeal, eOtherPlayer, bUselessReferenceVariable, bCantMatchOffer);	// Change the deal as necessary to make it work
-
 	return bDealAcceptable && !bCantMatchOffer && pDeal->GetNumItems() > 0;
 }
 
